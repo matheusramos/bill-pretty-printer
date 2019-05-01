@@ -1,23 +1,19 @@
 const input = {
   credit: [{
-    name: 'rent',
-    value: 708.40,
+    name: 'aluguel',
+    value: 879.49,
     shared: true,
   }, {
-    name: 'building',
+    name: 'condominio',
     value: 510,
     shared: true,
   }, {
     name: 'internet',
-    value: 219.78,
+    value: 242.57,
     shared: true,
   }, {
     name: 'gym',
     value: 85.22,
-  }, {
-    name: 'car insurance',
-    value: 367.34,
-    shared: true,
   }],
   debit: [{
     name: 'netflix',
@@ -25,31 +21,48 @@ const input = {
     shared: true,
   }, {
     name: 'power bill',
-    value: 0,
-    shared: true,
+    value: 49.47,
+    shared: false,
   }, {
-    name: 'car debts',
-    value: 80,
+    name: 'cama',
+    value: 57.20,
+  }, {
+    name: 'estacionamento',
+    value: 230,
+    shared: true,
   }],
 };
+
+const CREDIT = '*credit*';
+const DEBIT = '*debit*';
+const TOTAL = '*total*';
+const CURRENCY = 'R$';
 
 const reducer = (acc, bill) => ({
   sum: acc.sum + (bill.shared ? bill.value / 2 : bill.value),
   maxLength: bill.name.length > acc.maxLength ? bill.name.length : acc.maxLength,
 });
+
+const prettyLine = (name, value, debit = false, maxLength = 0) => {
+  const roundedValue = `${CURRENCY}${Number(value).toFixed(2)}`;
+  const valueStr = debit ? `(${roundedValue})` : roundedValue;
+  const paddedValue = valueStr.padStart(maxLength - name.length + (debit ? 11 : 10), ' ');
+  return `${name} ${paddedValue}`;
+}
+
+const prettyBill = (bill, debit = false, maxLength = 0) => (
+  prettyLine(bill.name, bill.shared ? bill.value / 2 : bill.value, debit, maxLength)
+);
+
 const credit = input.credit.reduce(reducer, { sum: 0, maxLength: 0 });
 const debit = input.debit.reduce(reducer, { sum: 0, maxLength: 0 });
-
+const maxLength = credit.maxLength > debit.maxLength ? credit.maxLength : debit.maxLength;
 
 // let's pretty print
-input.credit.forEach(bill => {
-  console.log(`${bill.name} - ${bill.shared ? bill.value / 2 : bill.value }`);
-});
-console.log(`credit: ${credit.sum}`);
+input.credit.forEach(bill => { console.log(prettyBill(bill, false, maxLength)); });
+console.log(prettyLine(CREDIT, credit.sum, false, maxLength));
 console.log();
-input.debit.forEach(bill => {
-  console.log(`${bill.name} - (${bill.shared ? bill.value / 2 : bill.value })`);
-});
-console.log(`debit: (${debit.sum})`);
+input.debit.forEach(bill => { console.log(prettyBill(bill, true, maxLength)); });
+console.log(prettyLine(DEBIT, debit.sum, true, maxLength));
 console.log();
-console.log(`total: ${credit.sum - debit.sum}`);
+console.log(prettyLine(TOTAL, credit.sum - debit.sum, credit.sum - debit.sum < 0 , maxLength));
